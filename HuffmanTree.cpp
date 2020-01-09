@@ -1,10 +1,3 @@
-/*
- * Name: Bryan Lee
- * Assignment: Program 4
- * Date: 11/26/19
- *
- * This program Compresses and Uncompresses files using Huffman's Encoding
- */
 #include "HuffmanTree.h"
 #include <iostream>
 
@@ -13,13 +6,13 @@ void HuffmanTree::createNodeArray()
 {
     for (int i = 0; i < 128; i++)
     {
-        nodeArray[i] = new huffman_node;
+        nodeArray[i] = new HuffmanNode;
         nodeArray[i]->id = i;
         nodeArray[i]->freq = 0;
     }
 }
 
-//convert a 8-bit 0/1 string of binary code to a decimal integer
+//Convert a 8-bit 0/1 string of binary code to a decimal integer
 int HuffmanTree::binary_to_decimal(basic_string<char> in)
 {
     int result = 0;
@@ -28,7 +21,7 @@ int HuffmanTree::binary_to_decimal(basic_string<char> in)
     return result;
 }
 
-//convert a decimal integer to a 8-bit 0/1 string of binary code
+//Convert a decimal integer to a 8-bit 0/1 string of binary code
 string HuffmanTree::decimal_to_binary(int in)
 {
     string temp = "";
@@ -39,7 +32,7 @@ string HuffmanTree::decimal_to_binary(int in)
         in /= 2;
     }
 
-    //appends '0' to get length of 8 bits
+    //Appends '0' to get length of 8 bits
     result.append(8 - temp.size(), '0');
 
     for (int i = temp.size() - 1; i >= 0; i--)
@@ -52,12 +45,10 @@ string HuffmanTree::decimal_to_binary(int in)
 //Traverses the tree
 void HuffmanTree::traverse(node_ptr node, string code)
 {
-    if (node->left == NULL && node->right == NULL)
-    {
+    if (node->left == NULL && node->right == NULL){
         node->code = code;
     }
-    else
-    {
+    else{
         traverse(node->left, code + '0');
         traverse(node->right, code + '1');
     }
@@ -66,22 +57,19 @@ void HuffmanTree::traverse(node_ptr node, string code)
 //build the HuffmanTree tree according to information from file
 inline void HuffmanTree::build_tree(string& path, char a_code){
     node_ptr current = root;
-    for (int i = 0; i < path.size(); i++)
-    {
-        if (path[i] == '0')
-        {
+    for (int i = 0; i < path.size(); i++){
+        if (path[i] == '0'){
             if (current->left == NULL)
-                current->left = new huffman_node;
+                current->left = new HuffmanNode;
             current = current->left;
         }
-        else if (path[i] == '1')
-        {
+        else if (path[i] == '1'){
             if (current->right == NULL)
-                current->right = new huffman_node;
+                current->right = new HuffmanNode;
             current = current->right;
         }
     }
-    //attach id to the leaf
+    //Creates leaf node
     current->id = a_code;
 }
 
@@ -118,8 +106,9 @@ void HuffmanTree::createHuffmanTree()
 {
     priority_queue<node_ptr, vector<node_ptr>, compare> temp(pq);
     while (temp.size() > 1)
-    {//create the HuffmanTree tree with highest frequecy characher being leaf from bottom to top
-        root = new huffman_node;
+    {
+        //Create the HuffmanTree
+        root = new HuffmanNode;
         root->freq = 0;
         root->left = temp.top();
         root->freq += temp.top()->freq;
@@ -141,55 +130,55 @@ void HuffmanTree::encodeSave()
     inputFile.open(in_file_name, ios::in);
 
     outputFile.open(out_file_name, ios::out | ios::binary);
-    string in = "", s = "";
+    string in = "", str = "";
 
-    //the first byte saves the size of the priority queue
+    //Saves the size of the priority queue
     in += (char)pq.size();
     priority_queue<node_ptr, vector<node_ptr>, compare> temp(pq);
     while (!temp.empty())
     {
-        //get all characters and their HuffmanTree codes for output
+        //Get all characters and their HuffmanTree codes for output
         node_ptr current = temp.top();
         in += current->id;
 
-        //set the codes with a fixed 128-bit string form[000����1 + real code]
-        s.assign(127 - current->code.size(), '0');
+        //Set the codes with a fixed 128-bit string form['0' + actual code]
+        str.assign(127 - current->code.size(), '0');
 
-        //'1' indicates the start of HuffmanTree code
-        s += '1';
-        s.append(current->code);
-        in += (char)binary_to_decimal(s.substr(0, 8));
+        //Indicates the start of HuffmanTree code
+        str += '1';
+        str.append(current->code);
+        in += (char)binary_to_decimal(str.substr(0, 8));
         for (int i = 0; i < 15; i++)
-        {//cut into 8-bit binary codes that can convert into saving char needed for binary file
-            s = s.substr(8);
-            in += (char)binary_to_decimal(s.substr(0, 8));
+        {
+            //Cuts string into 8-bit binary codes
+            str = str.substr(8);
+            in += (char)binary_to_decimal(str.substr(0, 8));
         }
         temp.pop();
     }
-    s.clear();
+    str.clear();
 
     inputFile.get(id);
     while (!inputFile.eof())
     {
-        //get the HuffmanTree code
-        s += nodeArray[id]->code;
-        while (s.size() > 8)
+        //Get the HuffmanTree code
+        str += nodeArray[id]->code;
+        while (str.size() > 8)
         {
-            //cut into 8-bit binary codes that can convert into saving char needed for binary file
-            in += (char)binary_to_decimal(s.substr(0, 8));
-            s = s.substr(8);
+            //Cuts into 8-bit binary codes
+            in += (char)binary_to_decimal(str.substr(0, 8));
+            str = str.substr(8);
         }
         inputFile.get(id);
     }
-    int count = 8 - s.size();
-    if (s.size() < 8)
+    int count = 8 - str.size();
+    if (str.size() < 8)
     {
-        //append number of 'count' '0' to the last few codes to create the last byte of text
-        s.append(count, '0');
+        str.append(count, '0');
     }
 
-    //save number of 'count' at last
-    in += (char)binary_to_decimal(s);
+    //Save number of 'count' at last
+    in += (char)binary_to_decimal(str);
     in += (char)count;
 
     outputFile.write(in.c_str(), in.size());
@@ -208,7 +197,7 @@ void HuffmanTree::recreateTree()
     //unsigned char to get number of node of tree
     unsigned char size;
     inputFile.read(reinterpret_cast<char*>(&size), 1);
-    root = new huffman_node;
+    root = new HuffmanNode;
     for (int i = 0; i < size; i++)
     {
         char a_code;
@@ -247,6 +236,8 @@ void HuffmanTree::decodeSave()
 
     inputFile.seekg(-1, ios::end);
     char magicNumber;
+
+    //Reads magic number
     inputFile.read(&magicNumber, 1);
     if(magicNumber != '6'){
         throw IncorrectHuffman();
@@ -254,18 +245,17 @@ void HuffmanTree::decodeSave()
 
     inputFile.seekg(-2, ios::end);
 
-    //jump to the last one byte to get the number of '0' append to the string at last
     char count0;
     inputFile.read(&count0, 1);
 
-    //jump to the position where text starts
+    //Jumps to where actual text starts
     inputFile.seekg(1 + 17 * size, ios::beg);
     vector<unsigned char> text;
     unsigned char textseg;
     inputFile.read(reinterpret_cast<char*>(&textseg), 1);
     while (!inputFile.eof())
     {
-        //get the text byte by byte using unsigned char
+        //Gets the text byte by byte
         text.push_back(textseg);
         inputFile.read(reinterpret_cast<char*>(&textseg), 1);
     }
@@ -280,7 +270,7 @@ void HuffmanTree::decodeSave()
 
     for (int i = 0; i < text.size() - 1; i++)
     {
-        //translate the HuffmanTree code
+        //Translates the HuffmanTree code
         path = decimal_to_binary(text[i]);
         if (i == text.size() - 2) {
             path = path.substr(0, 8 - count0);

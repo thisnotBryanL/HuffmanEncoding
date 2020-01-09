@@ -1,10 +1,3 @@
-/*
- * Name: Bryan Lee
- * Assignment: Program 4
- * Date: 11/26/19
- *
- * This program Compresses and Uncompresses files using Huffman's Encoding
- */
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 #include <string>
@@ -16,34 +9,30 @@ using namespace std;
 class IncorrectHuffman{};
 class NoFile {};
 
-struct huffman_node
-{
+struct HuffmanNode{
     char id;
-    //frequency of the character
     int freq;
-    //HuffmanTree code for the character
     string code;
-    huffman_node* left;
-    huffman_node* right;
-    huffman_node()
+    HuffmanNode* left;
+    HuffmanNode* right;
+    HuffmanNode()
     {
         left = right = NULL;
     }
 };
 
-typedef huffman_node* node_ptr;
+typedef HuffmanNode* node_ptr;
 
-class HuffmanTree
-{
+class HuffmanTree{
 protected:
-    //array for 128characters in the Ascii Table
+    //Array for the Ascii Table
     node_ptr nodeArray[128];
     fstream inputFile, outputFile;
-    node_ptr child, parent, root;
+    node_ptr root;
     char id;
     string in_file_name, out_file_name;
 
-    //Comparator used for queue
+    //Comparator used for Priority queue
     class compare{
     public:
         bool operator()(const node_ptr& c1, const node_ptr& c2) const
